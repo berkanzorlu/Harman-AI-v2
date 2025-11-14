@@ -1,0 +1,9 @@
+body {
+  font-family: system-ui, sans-serif;
+}
+.card {
+  background: #111827;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
