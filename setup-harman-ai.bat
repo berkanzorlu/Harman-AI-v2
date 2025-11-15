@@ -22,7 +22,7 @@ call :setupPython
 call :setupBrowserController
 call :setupDeveloperPortal
 call :buildDesktop
-call :activateLicense
+call :licenseActivation
 
 echo.
 echo Harman AI setup finished successfully.
@@ -126,7 +126,7 @@ dotnet publish "%DESKTOP_PROJECT%" -c Release -o "%PUBLISH_DIR%" || goto :fail
 echo Desktop binaries published to %PUBLISH_DIR%
 goto :eof
 
-:activateLicense
+:licenseActivation
 echo.
 echo --- License activation ---
 set DEFAULT_ACTIVATE_URL=http://localhost:3000/api/license/activate
