@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HarmanAI.Desktop.Models;
 
 public record DesktopCommand(string Type, Dictionary<string, string> Parameters);

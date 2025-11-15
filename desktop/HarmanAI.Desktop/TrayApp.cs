@@ -1,6 +1,11 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using HarmanAI.Desktop.Bridges;
 using HarmanAI.Desktop.Models;
 using HarmanAI.Desktop.Services;
+using Microsoft.VisualBasic;
 
 namespace HarmanAI.Desktop;
 
@@ -26,7 +31,7 @@ public class TrayApp
         EnsureLicenseAsync().GetAwaiter().GetResult();
         _voice.CommandRecognized += HandleCommandAsync;
         _voice.Start();
-        System.Windows.Forms.Application.Run();
+        Application.Run();
     }
 
     private async void HandleCommandAsync(object? sender, string text)
@@ -59,7 +64,7 @@ public class TrayApp
             return;
         }
 
-        var input = Microsoft.VisualBasic.Interaction.InputBox("Enter Harman AI license key", "License Activation", string.Empty);
+        var input = Interaction.InputBox("Enter Harman AI license key", "License Activation", string.Empty);
         if (string.IsNullOrWhiteSpace(input))
         {
             throw new InvalidOperationException("License key required");

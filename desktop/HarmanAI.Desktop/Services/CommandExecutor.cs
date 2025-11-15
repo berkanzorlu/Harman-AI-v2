@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using HarmanAI.Desktop.Bridges;
 using HarmanAI.Desktop.Models;
 
@@ -25,10 +28,13 @@ public class CommandExecutor
                 }
                 break;
             case "browser.open":
-                await _browserBridge.SendActionAsync("/open", new { url = command.Parameters["url"] }, ct);
+                if (command.Parameters.TryGetValue("url", out var url))
+                {
+                    await _browserBridge.SendActionAsync("/open", new { url }, ct);
+                }
                 break;
             default:
-                break;
+                throw new InvalidOperationException($"Unknown desktop command '{command.Type}'");
         }
     }
 }

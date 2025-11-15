@@ -1,7 +1,9 @@
-using HarmanAI.Desktop.Services;
+using System;
+using System.Windows.Forms;
 using HarmanAI.Desktop.Bridges;
 using HarmanAI.Desktop.Infrastructure.Logging;
 using HarmanAI.Desktop.Infrastructure.Security;
+using HarmanAI.Desktop.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,6 +15,7 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        ApplicationConfiguration.Initialize();
         var builder = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration(cfg =>
             {
@@ -20,6 +23,7 @@ internal static class Program
             })
             .ConfigureServices((ctx, services) =>
             {
+                services.AddSingleton<LogConfigurator>();
                 services.AddSingleton<TrayApp>();
                 services.AddSingleton<VoiceEngine>();
                 services.AddSingleton<UIAutomationController>();

@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 
@@ -14,7 +16,7 @@ public class LogConfigurator
 
     public ILogger Configure()
     {
-        var path = _configuration["Logging:Path"] ?? "C:/HarmanAI/logs";
+        var path = _configuration["Logging:Path"] ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HarmanAI", "logs");
         Directory.CreateDirectory(path);
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()

@@ -1,4 +1,8 @@
+using System;
+using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
 namespace HarmanAI.Desktop.Bridges;
@@ -15,7 +19,8 @@ public class NodeBrowserBridge
 
     public async Task<HttpResponseMessage> SendActionAsync(string endpoint, object payload, CancellationToken ct)
     {
-        var url = _configuration["BrowserControllerUrl"] + endpoint;
+        var baseUrl = _configuration["BrowserControllerUrl"] ?? throw new InvalidOperationException("BrowserControllerUrl not configured");
+        var url = baseUrl.TrimEnd('/') + endpoint;
         return await _client.PostAsJsonAsync(url, payload, ct);
     }
 }

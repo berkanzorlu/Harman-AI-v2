@@ -1,3 +1,5 @@
+using System.Windows.Forms;
+
 namespace HarmanAI.Desktop.Services;
 
 public class UIAutomationController
@@ -9,6 +11,6 @@ public class UIAutomationController
 
     public void SendKeys(string text)
     {
-        System.Windows.Forms.SendKeys.SendWait(text);
+        SendKeys.SendWait(text);
     }
 }
