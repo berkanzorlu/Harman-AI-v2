@@ -11,6 +11,6 @@ public class UIAutomationController
 
     public void SendKeys(string text)
     {
-        SendKeys.SendWait(text);
+        System.Windows.Forms.SendKeys.SendWait(text);
     }
 }
