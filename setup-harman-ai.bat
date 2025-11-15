@@ -1,39 +1,49 @@
 @echo off
 setlocal enabledelayedexpansion
+set EXIT_CODE=0
+
 set SCRIPT_DIR=%~dp0
 if "%SCRIPT_DIR:~-1%"=="\" set SCRIPT_DIR=%SCRIPT_DIR:~0,-1%
-pushd "%SCRIPT_DIR%"
+pushd "%SCRIPT_DIR%" || goto :fail
 
-set DESKTOP_PROJECT=%SCRIPT_DIR%\desktop\HarmanAI.Desktop\HarmanAI.Desktop.csproj
-set BROWSER_DIR=%SCRIPT_DIR%\backend\browser-controller
-set PORTAL_DIR=%SCRIPT_DIR%\developer-portal
-set PY_DIR=%SCRIPT_DIR%\backend\python
+goto :main
 
+:main
 call :banner
 call :require dotnet
 call :require python
 call :require npm
 call :require powershell
 
-call :ensureEnv "%PY_DIR%\.env" "%PY_DIR%\.env.example"
-call :ensureEnv "%PORTAL_DIR%\.env" "%PORTAL_DIR%\.env.example"
+call :ensureEnv "%SCRIPT_DIR%\backend\python\.env" "%SCRIPT_DIR%\backend\python\.env.example"
+call :ensureEnv "%SCRIPT_DIR%\developer-portal\.env" "%SCRIPT_DIR%\developer-portal\.env.example"
 
-call :setupPython
-call :setupBrowserController
-call :setupDeveloperPortal
-call :buildDesktop
+call :setupPython "%SCRIPT_DIR%\backend\python"
+call :setupBrowserController "%SCRIPT_DIR%\backend\browser-controller"
+call :setupDeveloperPortal "%SCRIPT_DIR%\developer-portal"
+call :buildDesktop "%SCRIPT_DIR%\desktop\HarmanAI.Desktop\HarmanAI.Desktop.csproj" "%SCRIPT_DIR%\publish\desktop"
 call :licenseActivation
 
 echo.
 echo Harman AI setup finished successfully.
+set EXIT_CODE=0
+goto :cleanup
+
+:fail
+echo.
+echo Setup aborted due to an earlier error (code %errorlevel%).
+if not "%errorlevel%"=="" set EXIT_CODE=%errorlevel%
+goto :cleanup
+
+:cleanup
 popd
 pause
-exit /b 0
+exit /b %EXIT_CODE%
 
 :banner
 echo ==================================================
 echo   Harman AI - One Click Setup and Activation
-
+echo.
 echo   Root Directory: %SCRIPT_DIR%
 echo ==================================================
 echo.
@@ -59,7 +69,7 @@ if exist %~1 (
         echo Template %~2 missing. Cannot continue.
         goto :fail
     )
-    copy %~2 %~1 >nul
+    copy %~2 %~1 >nul || goto :fail
     echo Created %~1. Please review and update sensitive values after setup.
 )
 goto :eof
@@ -67,7 +77,12 @@ goto :eof
 :setupPython
 echo.
 echo --- Configuring Python backend ---
+set PY_DIR=%~1
 set PY_VENV=%PY_DIR%\.venv
+if not exist "%PY_DIR%" (
+    echo Python backend directory not found: %PY_DIR%
+    goto :fail
+)
 if not exist "%PY_VENV%" (
     echo Creating Python virtual environment...
     python -m venv "%PY_VENV%" || goto :fail
@@ -84,6 +99,7 @@ goto :eof
 :setupBrowserController
 echo.
 echo --- Installing browser controller dependencies ---
+set BROWSER_DIR=%~1
 if not exist "%BROWSER_DIR%" (
     echo Browser controller directory not found: %BROWSER_DIR%
     goto :fail
@@ -97,6 +113,7 @@ goto :eof
 :setupDeveloperPortal
 echo.
 echo --- Installing developer portal and provisioning database ---
+set PORTAL_DIR=%~1
 if not exist "%PORTAL_DIR%" (
     echo Developer portal directory not found: %PORTAL_DIR%
     goto :fail
@@ -113,14 +130,13 @@ goto :eof
 :buildDesktop
 echo.
 echo --- Building Harman AI desktop host ---
+set DESKTOP_PROJECT=%~1
+set PUBLISH_DIR=%~2
 if not exist "%DESKTOP_PROJECT%" (
     echo Desktop project file not found: %DESKTOP_PROJECT%
     goto :fail
 )
 dotnet restore "%DESKTOP_PROJECT%" || goto :fail
-set PUBLISH_ROOT=%SCRIPT_DIR%\publish
-if not exist "%PUBLISH_ROOT%" mkdir "%PUBLISH_ROOT%"
-set PUBLISH_DIR=%PUBLISH_ROOT%\desktop
 if not exist "%PUBLISH_DIR%" mkdir "%PUBLISH_DIR%"
 dotnet publish "%DESKTOP_PROJECT%" -c Release -o "%PUBLISH_DIR%" || goto :fail
 echo Desktop binaries published to %PUBLISH_DIR%
@@ -130,9 +146,9 @@ goto :eof
 echo.
 echo --- License activation ---
 set DEFAULT_ACTIVATE_URL=http://localhost:3000/api/license/activate
-set /p LICENSE_SERVER_URL=Enter license activation endpoint [%DEFAULT_ACTIVATE_URL%]: 
+set /p LICENSE_SERVER_URL=Enter license activation endpoint [%DEFAULT_ACTIVATE_URL%]:
 if "%LICENSE_SERVER_URL%"=="" set LICENSE_SERVER_URL=%DEFAULT_ACTIVATE_URL%
-set /p LICENSE_KEY=Enter license key (leave blank to skip activation): 
+set /p LICENSE_KEY=Enter license key (leave blank to skip activation):
 if "%LICENSE_KEY%"=="" (
     echo Skipping license activation per request.
     goto :eof
@@ -148,10 +164,3 @@ powershell -NoProfile -Command "$body = @{licenseKey='%LICENSE_KEY%'; hardwareId
 )
 echo License activated successfully.
 goto :eof
-
-:fail
-echo.
-echo Setup aborted due to an earlier error (code %errorlevel%).
-popd
-pause
-exit /b 1
