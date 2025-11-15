@@ -1,7 +1,13 @@
 @echo off
 setlocal enabledelayedexpansion
 set SCRIPT_DIR=%~dp0
+if "%SCRIPT_DIR:~-1%"=="\" set SCRIPT_DIR=%SCRIPT_DIR:~0,-1%
 pushd "%SCRIPT_DIR%"
+
+set DESKTOP_PROJECT=%SCRIPT_DIR%\desktop\HarmanAI.Desktop\HarmanAI.Desktop.csproj
+set BROWSER_DIR=%SCRIPT_DIR%\backend\browser-controller
+set PORTAL_DIR=%SCRIPT_DIR%\developer-portal
+set PY_DIR=%SCRIPT_DIR%\backend\python
 
 call :banner
 call :require dotnet
@@ -9,8 +15,8 @@ call :require python
 call :require npm
 call :require powershell
 
-call :ensureEnv "backend\python\.env" "backend\python\.env.example"
-call :ensureEnv "developer-portal\.env" "developer-portal\.env.example"
+call :ensureEnv "%PY_DIR%\.env" "%PY_DIR%\.env.example"
+call :ensureEnv "%PORTAL_DIR%\.env" "%PORTAL_DIR%\.env.example"
 
 call :setupPython
 call :setupBrowserController
@@ -61,7 +67,6 @@ goto :eof
 :setupPython
 echo.
 echo --- Configuring Python backend ---
-set PY_DIR=%SCRIPT_DIR%backend\python
 set PY_VENV=%PY_DIR%\.venv
 if not exist "%PY_VENV%" (
     echo Creating Python virtual environment...
@@ -79,7 +84,11 @@ goto :eof
 :setupBrowserController
 echo.
 echo --- Installing browser controller dependencies ---
-pushd backend\browser-controller
+if not exist "%BROWSER_DIR%" (
+    echo Browser controller directory not found: %BROWSER_DIR%
+    goto :fail
+)
+pushd "%BROWSER_DIR%"
 npm install || goto :fail
 popd
 echo Browser controller ready.
@@ -88,7 +97,11 @@ goto :eof
 :setupDeveloperPortal
 echo.
 echo --- Installing developer portal and provisioning database ---
-pushd developer-portal
+if not exist "%PORTAL_DIR%" (
+    echo Developer portal directory not found: %PORTAL_DIR%
+    goto :fail
+)
+pushd "%PORTAL_DIR%"
 npm install || goto :fail
 npx prisma generate || goto :fail
 npx prisma migrate deploy || goto :fail
@@ -100,11 +113,16 @@ goto :eof
 :buildDesktop
 echo.
 echo --- Building Harman AI desktop host ---
-dotnet restore desktop\HarmanAI.Desktop\HarmanAI.Desktop.csproj || goto :fail
-if not exist publish mkdir publish
-set PUBLISH_DIR=%SCRIPT_DIR%publish\desktop
+if not exist "%DESKTOP_PROJECT%" (
+    echo Desktop project file not found: %DESKTOP_PROJECT%
+    goto :fail
+)
+dotnet restore "%DESKTOP_PROJECT%" || goto :fail
+set PUBLISH_ROOT=%SCRIPT_DIR%\publish
+if not exist "%PUBLISH_ROOT%" mkdir "%PUBLISH_ROOT%"
+set PUBLISH_DIR=%PUBLISH_ROOT%\desktop
 if not exist "%PUBLISH_DIR%" mkdir "%PUBLISH_DIR%"
-dotnet publish desktop\HarmanAI.Desktop\HarmanAI.Desktop.csproj -c Release -o "%PUBLISH_DIR%" || goto :fail
+dotnet publish "%DESKTOP_PROJECT%" -c Release -o "%PUBLISH_DIR%" || goto :fail
 echo Desktop binaries published to %PUBLISH_DIR%
 goto :eof
 
