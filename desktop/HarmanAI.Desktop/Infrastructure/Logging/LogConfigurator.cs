@@ -14,7 +14,7 @@ public class LogConfigurator
         _configuration = configuration;
     }
 
-    public ILogger Configure()
+    public Serilog.ILogger Configure()
     {
         var path = _configuration["Logging:Path"] ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HarmanAI", "logs");
         Directory.CreateDirectory(path);
