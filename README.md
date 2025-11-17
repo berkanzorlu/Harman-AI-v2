@@ -33,3 +33,14 @@ The script performs the following actions:
 > **Important:** Update the values in `backend/python/.env` and `developer-portal/.env` with your actual database connection strings, API keys, and RSA key pair before running the script so the Prisma migrations and FastAPI service can authenticate correctly.
 
 After the script completes you can start the services from their respective folders (`backend/python`, `backend/browser-controller`, `developer-portal`, and `publish/desktop`).
+
+### Launch everything with one command
+
+Run `run-harman-ai.bat` from the repository root to open all Harman AI components in dedicated terminal windows in the correct order:
+
+1. Python AI backend (virtual environment is activated automatically and `uvicorn` is started).
+2. Playwright browser controller (`npm run start`).
+3. Next.js developer portal (`npm run start`, which serves the previously built app).
+4. The published Windows desktop assistant executable from `publish/desktop`.
+
+The launcher performs the same dependency checks as the installer and validates that the build outputs exist before spawning each process. If any prerequisite is missing the script aborts with a clear error so you can re-run `setup-harman-ai.bat` or install the required tool.
