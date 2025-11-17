@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  name           String?
+  createdAt      DateTime @default(now())
+  licenses       License[]
+  memories       MemoryChunk[]
+  activations    Activation[]
+}
+
+model License {
+  id              String       @id @default(uuid())
+  key             String       @unique
+  maxActivations  Int          @default(1)
+  expiresAt       DateTime
+  revokedAt       DateTime?
+  user            User?        @relation(fields: [userId], references: [id])
+  userId          String?
+  activations     Activation[]
+}
+
+model Activation {
+  id          String   @id @default(uuid())
+  license     License  @relation(fields: [licenseId], references: [id])
+  licenseId   String
+  hardwareId  String
+  createdAt   DateTime @default(now())
+  revokedAt   DateTime?
+}
+
+model MemoryChunk {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  content   String
+  metadata  Json
+  createdAt DateTime @default(now())
+}
+
+model ConversationLog {
+  id        String   @id @default(uuid())
+  userId    String
+  role      String
+  text      String
+  context   Json
+  createdAt DateTime @default(now())
+}
+
+model ActionHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  payload   Json
+  result    Json
+  createdAt DateTime @default(now())
+}
+
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  totpSecret String
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String
+  payload   Json
+  createdAt DateTime @default(now())
+}

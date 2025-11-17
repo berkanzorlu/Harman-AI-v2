@@ -1,0 +1,9 @@
+node_modules
+.env
+.env.local
+backend/python/.venv
+__pycache__
+*.pyc
+bin/
+obj/
+logs
